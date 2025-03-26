@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 
+from app.schemas import SymbologySymbolCreate
+
 router = APIRouter(
     prefix="/symbols",
     tags=["symbols"],
@@ -10,3 +12,8 @@ router = APIRouter(
 @router.get("/")
 async def get_all_symbols():
     return {}
+
+
+@router.post("/")
+async def create_symbol(symbol: SymbologySymbolCreate):
+    return symbol

@@ -1,13 +1,15 @@
 import pytest
 from starlette.testclient import TestClient
 
+TEST_SYMBOLOGY = "TEST_SYMBOLOGY"
+
 
 @pytest.fixture
-def create_basic_symbol(client: TestClient):
+def new_symbol_ref_data_uuid(client: TestClient) -> str:
     spec = [
         {
             "symbology_map": {
-                "TEST_SYMBOLOGY": [
+                TEST_SYMBOLOGY: [
                     {
                         "symbol": "EURUSD",
                     }
@@ -16,7 +18,8 @@ def create_basic_symbol(client: TestClient):
         }
     ]
 
-    client.post("/symbols/", json=spec)
+    response = client.post("/symbols/", json=spec)
+    return response.json()[0]["ref_data_uuid"]
 
 
 class TestNewSymbol:
@@ -24,7 +27,7 @@ class TestNewSymbol:
         spec = [
             {
                 "symbology_map": {
-                    "TEST_SYMBOLOGY": [
+                    TEST_SYMBOLOGY: [
                         {
                             "symbol": "EURUSD",
                         }
@@ -43,7 +46,7 @@ class TestNewSymbol:
         spec = [
             {
                 "symbology_map": {
-                    "TEST_SYMBOLOGY": [
+                    TEST_SYMBOLOGY: [
                         {
                             "symbol": "EURUSD",
                         },
@@ -52,7 +55,7 @@ class TestNewSymbol:
             },
             {
                 "symbology_map": {
-                    "TEST_SYMBOLOGY": [
+                    TEST_SYMBOLOGY: [
                         {
                             "symbol": "GBPUSD",
                         },
@@ -83,7 +86,7 @@ class TestAllSymbols:
         )
 
     def test_get_all_after_a_symbol_has_been_created(
-        self, create_basic_symbol, client: TestClient
+        self, new_symbol_ref_data_uuid, client: TestClient
     ) -> None:
         response = client.get("/symbols/")
         assert response.status_code == 200
@@ -91,4 +94,36 @@ class TestAllSymbols:
         assert len(response.json()) == 1, "Should have 1 item in the response."
         assert response.json()[0]["ref_data_uuid"].startswith("ref-"), (
             "Should have a ref_data_uuid populated."
+        )
+
+
+class TestGetSymbolsByRefDataUUID:
+    def test_get_symbol_by_ref_data_uuid(
+        self, new_symbol_ref_data_uuid, client: TestClient
+    ) -> None:
+        # this fixture creates a symbol and returns the ref_data_uuid
+        ref_data_uuid = new_symbol_ref_data_uuid
+
+        # Fetch the symbol by ref_data_uuid
+        response = client.get(f"/symbols/{ref_data_uuid}")
+        assert response.status_code == 200
+
+        # Validate the response
+        assert response.json()["ref_data_uuid"] == ref_data_uuid, (
+            "Should return the correct symbol by ref_data_uuid."
+        )
+
+    def test_get_symbol_by_ref_data_uuid_any_symbology(
+        self, new_symbol_ref_data_uuid, client: TestClient
+    ) -> None:
+        # this fixture creates a symbol and returns the ref_data_uuid
+        ref_data_uuid = new_symbol_ref_data_uuid
+
+        # Fetch the symbol by ref_data_uuid
+        response = client.get(f"/symbols/{ref_data_uuid}/symbology/{TEST_SYMBOLOGY}")
+        assert response.status_code == 200
+
+        # Validate the response
+        assert response.json()["ref_data_uuid"] == ref_data_uuid, (
+            "Should return the correct symbol by ref_data_uuid."
         )

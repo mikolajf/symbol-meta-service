@@ -42,6 +42,46 @@ async def get_all_symbols(
     return all_symbols_public
 
 
+@router.get("/{ref_data_uuid}")
+@router.get("/{ref_data_uuid}/symbology/{symbology}")
+async def get_symbol_by_ref_data_uuid(
+    *,
+    session: Session = Depends(get_session),
+    ref_data_uuid: str,
+    symbology: str | None = None,
+) -> SymbologySymbolPublic:
+    """
+    Retrieve a symbol by its reference data UUID.
+
+    This endpoint fetches a symbol from the database using its reference data UUID and returns it as a SymbologySymbolPublic object.
+
+    Args:
+        session (Session): The database session dependency.
+        ref_data_uuid (str): The reference data UUID of the symbol.
+        symbology (str | None): The symbology of the symbol. Defaults to None.
+
+    Returns:
+        SymbologySymbolPublic: The symbol with the specified reference data UUID.
+    """
+
+    statement = select(SymbologySymbolDb).where(
+        SymbologySymbolDb.ref_data_uuid == ref_data_uuid
+    )
+
+    if symbology:
+        # filter by symbology if provided
+        statement = statement.where(SymbologySymbolDb.symbology == symbology)
+
+    results = session.exec(statement)
+    all_symbols = results.all()
+
+    # convert to public version so the output is consistent between endpoints
+    all_symbols_public = convert_list_of_db_objects_to_public_objects(all_symbols)
+
+    # given we query by ref_data_uuid, we should only have one result
+    return all_symbols_public[0]
+
+
 @router.post("/")
 async def create_symbol(
     *, session: Session = Depends(get_session), symbols: list[SymbologySymbolCreate]

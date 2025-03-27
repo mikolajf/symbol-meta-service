@@ -19,7 +19,10 @@ def session_fixture():
         Session: A SQLModel session connected to the in-memory SQLite database.
     """
     engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+        echo=True,
     )
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:

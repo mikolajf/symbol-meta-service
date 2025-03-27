@@ -14,6 +14,7 @@ class SymbologySymbolSpec(SQLModel):
         description=f"Start time of the symbol. Should be greater than {LOWEST_DATETIME}.",
         ge=LOWEST_DATETIME,
         sa_type=DateTime,
+        primary_key=True,
     )
     end_time: NaiveDatetime | None = Field(
         default=HIGHEST_DATETIME,
@@ -33,8 +34,7 @@ class SymbologySymbolDb(SymbologySymbolSpec, table=True):
     ref_data_uuid: str | None = Field(
         default_factory=generate_ref_data_uuid, primary_key=True
     )
-    symbology: str
-    seq_no: int
+    symbology: str = Field(primary_key=True)
 
 
 class SymbologySymbolCreate(SQLModel):

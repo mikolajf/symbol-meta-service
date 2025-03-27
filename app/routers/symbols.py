@@ -39,7 +39,6 @@ async def create_symbol(
                 db_object = SymbologySymbolDb(
                     **symbol_spec_entry.model_dump(),
                     symbology=symbology_name,
-                    seq_no=1,  # TODO <MFido> [27/03/2025] decide in necessary, cam we index with start_time instead
                     ref_data_uuid=ref_data_uuid,
                 )
 

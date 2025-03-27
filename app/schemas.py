@@ -38,5 +38,15 @@ class SymbologySymbolDb(SymbologySymbolSpec, table=True):
 
 
 class SymbologySymbolCreate(SQLModel):
+    """Create representation of the Symbology Symbol."""
+
     symbology_map: dict[str, list[SymbologySymbolSpec]]
     force_duplicates: bool = False
+
+
+class SymbologySymbolPublic(SymbologySymbolCreate):
+    """Public representation of the Symbology Symbol."""
+
+    ref_data_uuid: str
+    message: str | None = None
+    error: str | None = None

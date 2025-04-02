@@ -46,3 +46,18 @@ def test_create_corp_action_with_invalid_date(
 
     response = client.post("/corpActions/", json=corp_action)
     assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_create_corp_action_on_ref_data_uuid_that_does_not_exist(
+    client: TestClient,
+) -> None:
+    corp_action = {
+        "ref_data_uuid": "does-not-exist",
+        "action_type": "STOCK_SPLIT",
+        "effective_time": datetime.datetime.now().isoformat(),
+        "additive_adjustment": 1.0,
+    }
+
+    response = client.post("/corpActions/", json=corp_action)
+    assert response.status_code == HTTP_404_NOT_FOUND
+    assert response.json()[0]["error"]

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlmodel import select, Session
-from starlette.status import HTTP_201_CREATED
+from starlette.responses import Response
+from starlette.status import HTTP_201_CREATED, HTTP_404_NOT_FOUND
 
 from app.dependencies import get_session
 from app.schemas import SymbologySymbolDb
@@ -32,7 +33,10 @@ def get_all_corp_actions(
 
 @router.post("/", status_code=HTTP_201_CREATED)
 def create_corp_action(
-    *, session: Session = Depends(get_session), corp_action: CorpActionCreate
+    *,
+    session: Session = Depends(get_session),
+    corp_action: CorpActionCreate,
+    response: Response,
 ) -> list[CorpActionPublic]:
     db_objects: list[CorpActionDb] = []
     if corp_action.ref_data_uuid is None:
@@ -63,6 +67,21 @@ def create_corp_action(
             db_objects.append(db_object)
 
     else:
+        results = session.exec(
+            select(SymbologySymbolDb).where(
+                SymbologySymbolDb.ref_data_uuid == corp_action.ref_data_uuid
+            )
+        ).one_or_none()
+
+        if not results:
+            response.status_code = HTTP_404_NOT_FOUND
+            return [
+                CorpActionPublic(
+                    **corp_action.model_dump(),
+                    error=f"No symbol found for ref_data_uuid {corp_action.ref_data_uuid}",
+                )
+            ]
+
         # TODO <MFido> [02/04/2025] below is wrong. check if such ref_data_uuid exists first
         # in this case there is no need to lookup ref_data_uuid
         # there is only one corp action to create

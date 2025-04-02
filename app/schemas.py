@@ -1,7 +1,8 @@
 from itertools import groupby
 from operator import attrgetter
+from typing import TypeAlias
 
-from pydantic import NaiveDatetime, model_validator
+from pydantic import NaiveDatetime, model_validator, BaseModel
 from sqlalchemy import DateTime
 from sqlmodel import SQLModel, Field
 
@@ -40,10 +41,13 @@ class SymbologySymbolDb(SymbologySymbolSpec, table=True):
     symbology: str = Field(primary_key=True)
 
 
+SymbologyMaps: TypeAlias = dict[str, list[SymbologySymbolSpec]]
+
+
 class SymbologySymbolCreate(SQLModel):
     """Create representation of the Symbology Symbol."""
 
-    symbology_map: dict[str, list[SymbologySymbolSpec]]
+    symbology_map: SymbologyMaps
     force_duplicates: bool = False
 
 
@@ -91,3 +95,38 @@ def convert_list_of_db_objects_to_public_objects(
         grouped_by_uuid.append(SymbologySymbolPublic(**temp_group))
 
     return grouped_by_uuid
+
+
+class SymbolsToQuery(BaseModel):
+    """This is used to find the symbols in the database, given user inputs."""
+
+    symbology: str
+    symbol: str
+    start_time: NaiveDatetime
+    end_time: NaiveDatetime
+
+
+def convert_symbology_maps_to_symbology_symbol_date_tuples(
+    symbology_maps: SymbologyMaps,
+) -> list[SymbolsToQuery]:
+    """
+    Convert a symbology map to a list of symbols to query.
+
+    Args:
+        symbology_maps (SymbologyMaps): The symbology map to convert.
+
+    Returns:
+        list[SymbolsToQuery]: The list of symbols to query.
+    """
+    symbols_to_query = []
+    for symbology, symbols in symbology_maps.items():
+        for symbol in symbols:
+            symbols_to_query.append(
+                SymbolsToQuery(
+                    symbology=symbology,
+                    symbol=symbol.symbol,
+                    start_time=symbol.start_time,
+                    end_time=symbol.end_time,
+                )
+            )
+    return symbols_to_query

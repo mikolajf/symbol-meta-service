@@ -1,4 +1,5 @@
 import pytest
+from starlette.status import HTTP_201_CREATED, HTTP_200_OK
 from starlette.testclient import TestClient
 
 TEST_SYMBOLOGY = "TEST_SYMBOLOGY"
@@ -37,7 +38,7 @@ class TestNewSymbol:
         ]
 
         response = client.post("/symbols/", json=spec)
-        assert response.status_code == 200
+        assert response.status_code == HTTP_201_CREATED
 
         assert response.json()[0]["ref_data_uuid"].startswith("ref-")
         assert response.json()[0]["message"]
@@ -65,7 +66,7 @@ class TestNewSymbol:
         ]
 
         response = client.post("/symbols/", json=spec)
-        assert response.status_code == 200
+        assert response.status_code == HTTP_201_CREATED
 
         ref_data_uuids = [x["ref_data_uuid"] for x in response.json()]
         assert all([x.startswith("ref-") for x in ref_data_uuids]), (
@@ -79,7 +80,7 @@ class TestNewSymbol:
 class TestAllSymbols:
     def test_get_all_empty(self, client: TestClient) -> None:
         response = client.get("/symbols/")
-        assert response.status_code == 200
+        assert response.status_code == HTTP_200_OK
 
         assert response.json() == [], (
             "Should have an empty list as we have not created any symbols."
@@ -89,7 +90,7 @@ class TestAllSymbols:
         self, new_symbol_ref_data_uuid, client: TestClient
     ) -> None:
         response = client.get("/symbols/")
-        assert response.status_code == 200
+        assert response.status_code == HTTP_200_OK
 
         assert len(response.json()) == 1, "Should have 1 item in the response."
         assert response.json()[0]["ref_data_uuid"].startswith("ref-"), (
@@ -106,7 +107,7 @@ class TestGetSymbolsByRefDataUUID:
 
         # Fetch the symbol by ref_data_uuid
         response = client.get(f"/symbols/{ref_data_uuid}")
-        assert response.status_code == 200
+        assert response.status_code == HTTP_200_OK
 
         # Validate the response
         assert response.json()["ref_data_uuid"] == ref_data_uuid, (
@@ -121,7 +122,7 @@ class TestGetSymbolsByRefDataUUID:
 
         # Fetch the symbol by ref_data_uuid
         response = client.get(f"/symbols/{ref_data_uuid}/symbology/{TEST_SYMBOLOGY}")
-        assert response.status_code == 200
+        assert response.status_code == HTTP_200_OK
 
         # Validate the response
         assert response.json()["ref_data_uuid"] == ref_data_uuid, (

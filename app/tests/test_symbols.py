@@ -1,5 +1,5 @@
 import pytest
-from starlette.status import HTTP_201_CREATED, HTTP_200_OK
+from starlette.status import HTTP_201_CREATED, HTTP_200_OK, HTTP_400_BAD_REQUEST
 from starlette.testclient import TestClient
 
 TEST_SYMBOLOGY = "TEST_SYMBOLOGY"
@@ -75,6 +75,41 @@ class TestNewSymbol:
 
         assert len(ref_data_uuids) == 2, "Should have 2 items in the response."
         assert len(set(ref_data_uuids)) == 2, "Should have unique ref_data_uuids."
+
+    def test_with_no_symbols(self, client: TestClient) -> None:
+        spec = [
+            {
+                "symbology_map": {
+                    TEST_SYMBOLOGY: [],
+                },
+            }
+        ]
+
+        response = client.post("/symbols/", json=spec)
+        assert response.status_code == HTTP_400_BAD_REQUEST
+
+    def test_try_to_create_same_symbol_twice(self, client: TestClient) -> None:
+        spec = [
+            {
+                "symbology_map": {
+                    TEST_SYMBOLOGY: [
+                        {
+                            "symbol": "NEW_SYMBOL",
+                        }
+                    ]
+                },
+            }
+        ]
+
+        response = client.post("/symbols/", json=spec)
+        assert response.status_code == HTTP_201_CREATED, (
+            "First symbol should be created successfully."
+        )
+
+        response = client.post("/symbols/", json=spec)
+        assert response.status_code == HTTP_400_BAD_REQUEST, (
+            "Second symbol should fail to be created."
+        )
 
 
 class TestAllSymbols:

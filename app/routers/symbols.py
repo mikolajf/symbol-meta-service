@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 from starlette.responses import Response
@@ -127,13 +129,41 @@ async def create_symbol(
 
         if len(ref_data_uuids) == 1:
             # Only one unique ref_data_uuid found, use it
-            ref_data_uuid = ref_data_uuids.pop()
+            ref_data_uuid, symbologies_already_in_database = next(
+                iter(ref_data_uuids.items())
+            )
+
+            if symbology_maps.keys() <= symbologies_already_in_database:
+                # All symbologies are already in the database, raise an error
+                outputs.append(
+                    SymbologySymbolPublic(
+                        **symbol.model_dump(),
+                        ref_data_uuid=ref_data_uuid,
+                        error=(
+                            "All symbologies provided for this ref_data_uuid are already in the database. This "
+                            "request type can only be used to define new symbologies to an existing ref_data_uuid / "
+                            "define new symbol with new ref_data_uuid. Use other method to change existing "
+                            "symbologies."
+                        ),
+                    )
+                )
+
+            # filter out symbologies that are already in the database
+            symbology_maps = {
+                symbology_name: symbology_values
+                for symbology_name, symbology_values in symbology_maps.items()
+                if symbology_name not in symbologies_already_in_database
+            }
+
         elif len(ref_data_uuids) > 1:
             # Multiple unique ref_data_uuids found, raise an error
             outputs.append(
                 SymbologySymbolPublic(
                     **symbol.model_dump(),
-                    error="Multiple ref_data_uuids have been found for symbols provided, cannot determine which one to use. Please verify the request provided.",
+                    error=(
+                        "Multiple ref_data_uuids have been found for symbols provided, cannot determine which one "
+                        "to use. Please verify the request provided."
+                    ),
                 )
             )
         else:
@@ -176,7 +206,7 @@ async def create_symbol(
 
 async def lookup_ref_data_uuid_given_symbology_maps(
     *, session: Session = Depends(get_session), symbology_maps: SymbologyMaps
-) -> set[str]:
+) -> dict[str, set[str]]:
     """
     Lookup reference data UUIDs given symbology maps.
 
@@ -188,7 +218,7 @@ async def lookup_ref_data_uuid_given_symbology_maps(
         symbology_maps (SymbologyMaps): The symbology maps to query.
 
     Returns:
-        set[str]: A set of unique reference data UUIDs.
+        dict[str, list[str]]: A dict of unique reference data UUIDs, and defined symbologies for this symbol.
     """
 
     # iterate over symbols provided, and check in database if they already exists
@@ -197,19 +227,21 @@ async def lookup_ref_data_uuid_given_symbology_maps(
             symbology_maps=symbology_maps
         )
     )
-    unique_ref_data_uuids: set[str] = set()
+    unique_ref_data_uuids: dict[str, set[str]] = defaultdict(set)
     for symbol_to_query in symbols_to_query:
         statement = select(SymbologySymbolDb).where(
             SymbologySymbolDb.symbol == symbol_to_query.symbol,
             SymbologySymbolDb.symbology == symbol_to_query.symbology,
             SymbologySymbolDb.start_time >= symbol_to_query.start_time,
-            SymbologySymbolDb.end_time < symbol_to_query.end_time,
+            SymbologySymbolDb.end_time <= symbol_to_query.end_time,
         )
 
         results = session.exec(statement)
+        # TODO <MFido> [02/04/2025] we use .all() here with the assumption (to be reviewed) that more than one symbol
+        #  can be found, either get rid of this assumption (and replace with .one() or document explicitly
         all_symbols: list[SymbologySymbolDb] = results.all()
 
-        # if we found a symbol / symbols, we find all unique ref_data_uuids
-        if all_symbols:
-            unique_ref_data_uuids.update([x.ref_data_uuid for x in all_symbols])
+        # if we found a symbol / symbols, update the unique_ref_data_uuids dict with the ref_data_uuid as key and symbology as value
+        for symbol in all_symbols:
+            unique_ref_data_uuids[symbol.ref_data_uuid].add(symbol.symbology)
     return unique_ref_data_uuids

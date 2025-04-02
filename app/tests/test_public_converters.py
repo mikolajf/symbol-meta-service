@@ -1,8 +1,9 @@
 import pytest
+
+from app.internal.symbols_helpers import convert_list_of_db_objects_to_public_objects
 from app.schemas import (
     SymbologySymbolSpec,
     SymbologySymbolDb,
-    convert_list_of_db_objects_to_public_objects,
 )
 from app.constants import LOWEST_DATETIME, HIGHEST_DATETIME
 

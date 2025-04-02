@@ -1,7 +1,14 @@
 [project]
 name = "symbol-meta-service"
 version = "0.1.0"
-description = "Add your description here"
+description = [
+    "The Symbol Meta Service is a Python web server built using the FastAPI framework, designed to manage corporate ",
+    "actions and symbology changes for financial securities. It provides endpoints to retrieve and create symbols ",
+    "and corporate actions, ensuring data consistency and integrity through validation and error handling. ",
+    "The project includes unit tests for various scenarios, such as retrieving all corporate actions, creating new ",
+    "corporate actions, and handling errors for nonexistent symbols. This project is intended for learning and ",
+    "experimenting with FastAPI and related technologies and is not meant for production use."
+]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

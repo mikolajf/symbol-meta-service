@@ -111,6 +111,48 @@ class TestNewSymbol:
             "Second symbol should fail to be created."
         )
 
+    def test_make_subsequent_request_with_more_symbologies_than_in_the_first_one(
+        self, client: TestClient
+    ) -> None:
+        spec = [
+            {
+                "symbology_map": {
+                    TEST_SYMBOLOGY: [
+                        {
+                            "symbol": "NEW_SYMBOL",
+                        }
+                    ]
+                },
+            }
+        ]
+
+        response = client.post("/symbols/", json=spec)
+        assert response.status_code == HTTP_201_CREATED, (
+            "First symbol should be created successfully."
+        )
+
+        spec = [
+            {
+                "symbology_map": {
+                    TEST_SYMBOLOGY: [
+                        {
+                            "symbol": "NEW_SYMBOL",
+                        },
+                    ],
+                    "ANOTHER_SYMBOLOGY": [
+                        {
+                            "symbol": "NEW_SYMBOL",
+                        },
+                    ],
+                },
+            }
+        ]
+
+        response = client.post("/symbols/", json=spec)
+        assert response.status_code == HTTP_201_CREATED, (
+            "Second symbol should also be created as creating new symbologies."
+        )
+
 
 class TestAllSymbols:
     def test_get_all_empty(self, client: TestClient) -> None:

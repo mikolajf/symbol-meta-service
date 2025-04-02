@@ -5,7 +5,6 @@ from starlette.status import HTTP_201_CREATED
 from app.dependencies import get_session
 from app.schemas import SymbologySymbolDb
 from app.schemas.corp_actions import (
-    CorpAction,
     CorpActionCreate,
     CorpActionPublic,
     CorpActionDb,
@@ -21,12 +20,14 @@ router = APIRouter(
 @router.get("/")
 def get_all_corp_actions(
     *, session: Session = Depends(get_session)
-) -> list[CorpAction]:
-    statement = select(CorpAction)
+) -> list[CorpActionPublic]:
+    statement = select(CorpActionDb)
     results = session.exec(statement)
     all_corp_actions = results.all()
 
-    return all_corp_actions
+    return [
+        CorpActionPublic(**corp_action.model_dump()) for corp_action in all_corp_actions
+    ]
 
 
 @router.post("/", status_code=HTTP_201_CREATED)

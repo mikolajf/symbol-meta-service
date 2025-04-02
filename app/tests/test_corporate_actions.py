@@ -1,6 +1,10 @@
 import datetime
 
-from starlette.status import HTTP_404_NOT_FOUND, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from starlette.status import (
+    HTTP_404_NOT_FOUND,
+    HTTP_201_CREATED,
+    HTTP_422_UNPROCESSABLE_ENTITY,
+)
 from starlette.testclient import TestClient
 
 from app.constants import LOWEST_DATETIME
@@ -41,4 +45,4 @@ def test_create_corp_action_with_invalid_date(
     }
 
     response = client.post("/corpActions/", json=corp_action)
-    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY

@@ -5,6 +5,8 @@ from pydantic import model_validator, NaiveDatetime
 from sqlalchemy import DateTime
 from sqlmodel import SQLModel, Field
 
+from app.constants import HIGHEST_DATETIME, LOWEST_DATETIME
+
 
 class CorpActionsTypes(StrEnum):
     STOCK_SPLIT = "STOCK_SPLIT"
@@ -21,7 +23,13 @@ class CorpAction(SQLModel):
     """CorpAction model in database."""
 
     ref_data_uuid: str = Field(primary_key=True)
-    effective_time: NaiveDatetime = Field(primary_key=True, sa_type=DateTime)
+    # noinspection PyTypeChecker
+    effective_time: NaiveDatetime = Field(
+        primary_key=True,
+        sa_type=DateTime,
+        le=HIGHEST_DATETIME,
+        ge=LOWEST_DATETIME,
+    )
     action_type: CorpActionsTypes
     additive_adjustment: float | None = Field(default=0.0)
     multiplicative_adjustment: float | None = Field(default=1.0)

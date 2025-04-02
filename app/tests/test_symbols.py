@@ -1,5 +1,10 @@
 import pytest
-from starlette.status import HTTP_201_CREATED, HTTP_200_OK, HTTP_400_BAD_REQUEST
+from starlette.status import (
+    HTTP_201_CREATED,
+    HTTP_200_OK,
+    HTTP_400_BAD_REQUEST,
+    HTTP_207_MULTI_STATUS,
+)
 from starlette.testclient import TestClient
 
 TEST_SYMBOLOGY = "TEST_SYMBOLOGY"
@@ -151,6 +156,63 @@ class TestNewSymbol:
         response = client.post("/symbols/", json=spec)
         assert response.status_code == HTTP_201_CREATED, (
             "Second symbol should also be created as creating new symbologies."
+        )
+
+    def test_make_subseqent_request_with_more_symbols_than_in_the_first_one(
+        self, client: TestClient
+    ) -> None:
+        spec = [
+            {
+                "symbology_map": {
+                    TEST_SYMBOLOGY: [
+                        {
+                            "symbol": "NEW_SYMBOL",
+                        }
+                    ]
+                },
+            }
+        ]
+
+        response = client.post("/symbols/", json=spec)
+        assert response.status_code == HTTP_201_CREATED, (
+            "First symbol should be created successfully."
+        )
+        first_request_ref_data_uuid = response.json()[0]["ref_data_uuid"]
+
+        spec = [
+            {
+                "symbology_map": {
+                    TEST_SYMBOLOGY: [
+                        {
+                            "symbol": "NEW_SYMBOL",
+                        },
+                    ],
+                },
+            },
+            {
+                "symbology_map": {
+                    TEST_SYMBOLOGY: [
+                        {
+                            "symbol": "ANOTHER_NEW_SYMBOL",
+                        },
+                    ],
+                },
+            },
+        ]
+
+        response = client.post("/symbols/", json=spec)
+        assert response.status_code == HTTP_207_MULTI_STATUS, (
+            "One should fail. One should pass."
+        )
+        assert len(response.json()) == 2, "Should have 2 items in the response."
+        assert response.json()[0]["ref_data_uuid"] == first_request_ref_data_uuid, (
+            "First item should be the same."
+        )
+        assert response.json()[0]["error"] != "", (
+            "First item should have an error message."
+        )
+        assert response.json()[1]["ref_data_uuid"] != first_request_ref_data_uuid, (
+            "Second item should be different."
         )
 
 

@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .db import create_db_and_tables
-from .routers import symbols
+from .routers import symbols, corp_actions
 
 
 @asynccontextmanager
@@ -33,6 +33,7 @@ app = FastAPI(lifespan=lifespan)
 
 # Include more routes here
 app.include_router(symbols.router)
+app.include_router(corp_actions.router)
 
 
 @app.get("/")

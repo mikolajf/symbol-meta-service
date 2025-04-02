@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
 from sqlmodel import SQLModel, Session
 
+from . import TEST_SYMBOLOGY
 from ..main import app
 from ..dependencies import get_session
 
@@ -52,3 +53,21 @@ def client_fixture(session: Session):
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def new_symbol_ref_data_uuid(client: TestClient) -> str:
+    spec = [
+        {
+            "symbology_map": {
+                TEST_SYMBOLOGY: [
+                    {
+                        "symbol": "EURUSD",
+                    }
+                ]
+            },
+        }
+    ]
+
+    response = client.post("/symbols/", json=spec)
+    return response.json()[0]["ref_data_uuid"]

@@ -1,4 +1,3 @@
-import pytest
 from starlette.status import (
     HTTP_201_CREATED,
     HTTP_200_OK,
@@ -7,25 +6,7 @@ from starlette.status import (
 )
 from starlette.testclient import TestClient
 
-TEST_SYMBOLOGY = "TEST_SYMBOLOGY"
-
-
-@pytest.fixture
-def new_symbol_ref_data_uuid(client: TestClient) -> str:
-    spec = [
-        {
-            "symbology_map": {
-                TEST_SYMBOLOGY: [
-                    {
-                        "symbol": "EURUSD",
-                    }
-                ]
-            },
-        }
-    ]
-
-    response = client.post("/symbols/", json=spec)
-    return response.json()[0]["ref_data_uuid"]
+from app.tests import TEST_SYMBOLOGY
 
 
 class TestNewSymbol:
@@ -36,6 +17,26 @@ class TestNewSymbol:
                     TEST_SYMBOLOGY: [
                         {
                             "symbol": "EURUSD",
+                        }
+                    ]
+                },
+            }
+        ]
+
+        response = client.post("/symbols/", json=spec)
+        assert response.status_code == HTTP_201_CREATED
+
+        assert response.json()[0]["ref_data_uuid"].startswith("ref-")
+        assert response.json()[0]["message"]
+
+    def test_create_symbol_with_start_date(self, client: TestClient) -> None:
+        spec = [
+            {
+                "symbology_map": {
+                    TEST_SYMBOLOGY: [
+                        {
+                            "symbol": "EURUSD",
+                            "start_time": "2021-01-01T00:00:00",
                         }
                     ]
                 },

@@ -106,3 +106,16 @@ def create_corp_action(
         output.append(public_obj)
 
     return output
+
+
+@router.put(
+    "/",
+    summary="Make edits to existing corporate action.",
+)
+def update_corp_action(
+    *,
+    session: Session = Depends(get_session),
+    corp_action: CorpActionCreate,
+    response: Response,
+) -> list[CorpActionPublic]:
+    raise NotImplementedError

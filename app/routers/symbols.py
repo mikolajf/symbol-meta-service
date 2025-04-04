@@ -198,3 +198,13 @@ async def create_symbol(
         response.status_code = HTTP_207_MULTI_STATUS
 
     return outputs
+
+
+@router.put("/")
+async def change_symbol_history(
+    *,
+    session: Session = Depends(get_session),
+    symbols: list[SymbologySymbolCreate],
+    response: Response,
+) -> list[SymbologySymbolPublic]:
+    raise NotImplementedError

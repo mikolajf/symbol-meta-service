@@ -4,6 +4,7 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
     HTTP_201_CREATED,
     HTTP_422_UNPROCESSABLE_ENTITY,
+    HTTP_200_OK,
 )
 from starlette.testclient import TestClient
 
@@ -12,7 +13,7 @@ from app.constants import LOWEST_DATETIME
 
 def test_get_all_corp_actions_returns_empty_list(client: TestClient) -> None:
     response = client.get("/corpActions/")
-    assert response.status_code == HTTP_404_NOT_FOUND
+    assert response.status_code == HTTP_200_OK
     assert response.json() == []
 
 

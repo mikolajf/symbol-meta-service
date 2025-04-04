@@ -36,9 +36,11 @@ class SymbologySymbolSpec(SQLModel):
 
 class SymbologySymbolDb(SymbologySymbolSpec, table=True):
     ref_data_uuid: str | None = Field(
-        default_factory=generate_ref_data_uuid, primary_key=True
+        default_factory=generate_ref_data_uuid,
+        primary_key=True,
+        description="Reference data UUID that has been assigned to a security.",
     )
-    symbology: str = Field(primary_key=True)
+    symbology: str = Field(primary_key=True, description="Symbology name")
 
 
 SymbologyMaps: TypeAlias = dict[str, list[SymbologySymbolSpec]]

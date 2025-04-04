@@ -207,4 +207,15 @@ async def change_symbol_history(
     symbols: list[SymbologySymbolCreate],
     response: Response,
 ) -> list[SymbologySymbolPublic]:
+    """
+    Update an existing corporate action in the database.
+
+    Args:
+        session (Session): The database session dependency.
+        corp_action (CorpActionCreate): The corporate action to be updated.
+        response (Response): The response object to set the status code.
+
+    Returns:
+        list[CorpActionPublic]: A list of updated corporate actions with their ref_data_uuid and a success message.
+    """
     raise NotImplementedError

@@ -9,8 +9,8 @@ from app.internal.id_generator import generate_ref_data_uuid
 
 
 class SymbologySymbolSpec(SQLModel):
-    symbol: str
-    exchange: str | None = None
+    symbol: str = Field(description="Symbol identifier")
+    exchange: str | None = Field(default=None, description="Exchange identifier")
     # noinspection PyTypeChecker
     start_time: NaiveDatetime | None = Field(
         default=LOWEST_DATETIME,
@@ -47,16 +47,24 @@ SymbologyMaps: TypeAlias = dict[str, list[SymbologySymbolSpec]]
 class SymbologySymbolCreate(SQLModel):
     """Create representation of the Symbology Symbol."""
 
-    symbology_map: SymbologyMaps
-    force_duplicates: bool = False
+    symbology_map: SymbologyMaps = Field(description="Mapping of symbology to symbols")
+    force_duplicates: bool = Field(
+        default=False, description="Flag to force duplicate entries"
+    )
 
 
 class SymbologySymbolPublic(SymbologySymbolCreate):
     """Public representation of the Symbology Symbol."""
 
-    ref_data_uuid: str
-    message: str | None = None
-    error: str | None = None
+    ref_data_uuid: str = Field(
+        description="Reference data UUID that has been assigned to a security."
+    )
+    message: str | None = Field(
+        None, description="Message related to the new symbol creation."
+    )
+    error: str | None = Field(
+        None, description="Error message if any issue occurred with symbol creation."
+    )
 
 
 class SymbolsToQuery(BaseModel):

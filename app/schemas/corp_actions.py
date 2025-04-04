@@ -50,9 +50,11 @@ class CorpActionDb(CorpAction, table=True):
 class CorpActionCreate(CorpAction):
     """CorpAction create model. To be used for creating a new corp action."""
 
-    ref_data_uuid: str | None = None
-    symbology: str | None = None
-    symbol: str | None = None
+    ref_data_uuid: str | None = Field(
+        None, description="Reference data UUID to assign corp action to a security."
+    )
+    symbology: str | None = Field(None, description="Symbology of the security.")
+    symbol: str | None = Field(None, description="Symbol of the security.")
 
     @model_validator(mode="after")
     def verify_a_or_b(self) -> Self:
@@ -70,6 +72,10 @@ class CorpActionCreate(CorpAction):
 class CorpActionPublic(CorpAction):
     """CorpAction public model. To be used for returning corp action to the client."""
 
-    ref_data_uuid: str | None = None
-    message: str | None = None
-    error: str | None = None
+    ref_data_uuid: str | None = Field(
+        None, description="Reference data UUID to assign corp action to a security."
+    )
+    message: str | None = Field(None, description="Message related to the corp action.")
+    error: str | None = Field(
+        None, description="Error message if any issue occurred with the corp action."
+    )

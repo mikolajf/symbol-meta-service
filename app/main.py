@@ -34,7 +34,14 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="Symbol Meta Service",
+    description=(
+        "The Symbol Meta Service is a Python web server built using the FastAPI framework, designed to manage "
+        "corporate actions and symbology changes for financial securities"
+    ),
+    lifespan=lifespan,
+)
 
 # Include more routes here
 app.include_router(symbols.router)

@@ -22,17 +22,25 @@ class CorpActionsTypes(StrEnum):
 class CorpAction(SQLModel):
     """CorpAction model in database."""
 
-    ref_data_uuid: str = Field(primary_key=True)
+    ref_data_uuid: str = Field(
+        primary_key=True,
+        description="Reference data UUID to assign corp action to a security.",
+    )
     # noinspection PyTypeChecker
     effective_time: NaiveDatetime = Field(
         primary_key=True,
         sa_type=DateTime,
         le=HIGHEST_DATETIME,
         ge=LOWEST_DATETIME,
+        description="Effective time of the corp action.",
     )
-    action_type: CorpActionsTypes
-    additive_adjustment: float | None = Field(default=0.0)
-    multiplicative_adjustment: float | None = Field(default=1.0)
+    action_type: CorpActionsTypes = Field(description="Type of the corp action.")
+    additive_adjustment: float | None = Field(
+        default=0.0, description="Additive adjustment to the security price."
+    )
+    multiplicative_adjustment: float | None = Field(
+        default=1.0, description="Multiplicative adjustment to the security price."
+    )
 
 
 class CorpActionDb(CorpAction, table=True):

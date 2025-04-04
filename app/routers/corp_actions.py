@@ -31,7 +31,12 @@ def get_all_corp_actions(
     ]
 
 
-@router.post("/", status_code=HTTP_201_CREATED)
+@router.post(
+    "/",
+    status_code=HTTP_201_CREATED,
+    summary="Create new corporate action.",
+    description="Create a new corporate action. If ref_data_uuid is not provided, the symbol and symbology pair will be used to lookup the ref_data_uuid.",
+)
 def create_corp_action(
     *,
     session: Session = Depends(get_session),
